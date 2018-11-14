@@ -68,9 +68,9 @@ class node():
         self.connected.append(store)
 
     #Using straight line distance as heuristic
-def heuristic(n, goal):
-    dx = abs(n.x - goal.x)
-    dy = abs(n.y - goal.y)
+def heuristic(n, m):
+    dx = abs(n.x - m.x)
+    dy = abs(n.y - m.y)
     h_n = np.sqrt(math.pow(dx,2) + math.pow(dy,2))
 #    h_n=dx+dy
     return h_n 
