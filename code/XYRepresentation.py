@@ -14,6 +14,8 @@ import matplotlib.patches as patches
 from matplotlib.collections import PatchCollection
 from matplotlib import collections as mc
 import shapely.geometry as shapely
+from XYaStarInterpreter import interpret
+from Astar import find_path
 #from descartes.patch import PolygonPatch
 
 class Graph():
@@ -47,8 +49,8 @@ class Graph():
                 self.edges.append((a,q))
             return True
 class Map():
-    points=[]
-    edges=[]
+    points=[] #PRM points
+    edges=[] #PRM edges
     lines=[]
     buff_lines=[]
     obstacles=[]
@@ -158,6 +160,9 @@ class Map():
 def test():
 #    mp = Map(-5,5,-5,5)
     mp = Map(-7, 8, -7, 8)
+    
+    start=(-3,-3)
+    goal=(4,4)
 #    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
     mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
     mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
@@ -173,9 +178,29 @@ def test():
         nb=graph.ngd(graph.vertices[i])
         for pt in nb:
             graph.connect(graph.vertices[i],pt)
-        mp.points=graph.vertices
-        mp.edges=graph.edges
-        mp.display()
+            
+    graph.addVertex(start)
+    nb=graph.ngd(graph.vertices[-1])
+    for pt in nb:
+        graph.connect(graph.vertices[i],pt)
+    graph.addVertex(goal)
+    nb=graph.ngd(graph.vertices[-1])
+    for pt in nb:
+        graph.connect(graph.vertices[i],pt)
+    
+    ag=interpret(graph.vertices,graph.edges)
+    end = ag.nodes.pop()
+    beg = ag.nodes.pop()
+    find_path(beg,end)
+    iterator = end
+    while iterator.parent != None:
+        lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
+        iterator=iterator.parent 
+        
+    mp.lines=lines
+    mp.points=graph.vertices
+    mp.edges=graph.edges
+    mp.display()
 #    graph.addVertex((-2,-2))
 #    print graph.ngd(graph.vertices[0])
 #    graph.addVertex((2,2))

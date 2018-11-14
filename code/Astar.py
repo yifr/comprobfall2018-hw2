@@ -35,12 +35,12 @@ def find_path(start, goal):
             
         closed.append(current_tuple[1])
         
-        if current_tuple[1].x == goal.x and current_tuple[1].y == goal.y:
-                print "Found Goal!"
-                print("step %d"%(counter))
-                goal.set_parent(current_tuple[1].parent)
-                goal.g=current_tuple[1].g
-                return closed
+        if current_tuple[1].equal(goal):
+            print "Found Goal!"
+            print("step %d"%(counter))
+            goal.set_parent(current_tuple[1].parent)
+            goal.g=current_tuple[1].g
+            return closed
         
         #get neighbors list
         neighbors = current_tuple[1].connected
@@ -68,7 +68,7 @@ def find_path(start, goal):
 def updateVertex(current,succ,fringe,goal):
     #use heuristic to get cost of travel (assume heuristic=cost)
     c_val=heuristic(current,succ)
-
+    #update g value for vertex
     if current.g + c_val < succ.g or succ.g<0:
         succ.g = current.g+c_val
         succ.set_parent(current)
