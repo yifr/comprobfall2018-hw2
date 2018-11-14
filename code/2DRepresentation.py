@@ -73,13 +73,12 @@ class Map():
         
     def collide(self,point1,point2=None):
         if point2==None:
-            point2=point1
-        path =shapely.LineString([point1,point2])
-        if self.visibility:
+            point=shapely.Point(point1[0],point1[1])
             for obs in self.obstacles:
-                if obs[4].intersects(path) and not path.touches(obs[4]):
+                if point.within(obs[1]) and not point.touches(obs[1]):
                     return True
         else:
+            path =shapely.LineString([point1,point2])
             if self.buff>0:
                 path=path.buffer(self.buff)
             for obs in self.obstacles:
@@ -123,7 +122,7 @@ class Map():
         for edge in self.edges:
             c.append((1,0,0,0.5))
 #            vis_lines.append([(edge[0][0],edge[0][1]),(edge[1][0],edge[1][1])])
-        ax.add_collection(mc.LineCollection(self.edges,colors=c,linewidths = 2.5))
+        ax.add_collection(mc.LineCollection(self.edges,colors=c,linewidths = 1.0))
         
         #Set size of plot
         fig_size = plt.rcParams["figure.figsize"]
@@ -133,7 +132,7 @@ class Map():
         
         #draw points
         for pt in self.points:
-            plt.plot(pt[0],pt[1],marker='o', markersize=5, color="red")
+            plt.plot(pt[0],pt[1],marker='o', markersize=5, color="black")
         
         #draw lines to the plot
         if not self.visibility and self.buff>0:
@@ -157,14 +156,19 @@ class Map():
         plt.show()
 
 def test():
-    mp = Map(-5,5,-5,5)
-    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
+#    mp = Map(-5,5,-5,5)
+    mp = Map(-7, 8, -7, 8)
+#    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
+    mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
+    mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
+    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
+    mp.add_Poly([(7,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
     graph=Graph(mp)
 #    for i in range(10):
 #        pt=mp.sample()
 #        graph.addVertex(pt)
 #        pts.append(pt)
-    for i in range(100):
+    for i in range(50):
         graph.addVertex(mp.sample())
         nb=graph.ngd(graph.vertices[i])
         for pt in nb:
