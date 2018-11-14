@@ -63,7 +63,7 @@ def find_path(start, goal):
                     
                 updateVertex(current_tuple[1],neighbor,fringe,goal)
                
-    return "No path found"
+    print "No path found"
 
 def updateVertex(current,succ,fringe,goal):
     #use heuristic to get cost of travel (assume heuristic=cost)
@@ -73,7 +73,7 @@ def updateVertex(current,succ,fringe,goal):
         succ.g = current.g+c_val
         succ.set_parent(current)
         for open_node in fringe:
-            if open_node.equal(succ):
+            if open_node[1].equal(succ):
                 fringe.remove(open_node)    
         h_n = heuristic(succ,goal)
         f_n = h_n + succ.g 

@@ -28,7 +28,7 @@ class aStarGraph():
             while node1==None or node2==None:
                 if node1==None and nodes[counter].equal(coord=edge[0]):
                     node1=nodes[counter]
-                elif node2==None and nodes[counter].equal(coord=edge[1]):
+                if node2==None and nodes[counter].equal(coord=edge[1]):
                     node2=nodes[counter]
                 counter+=1
             node1.connected.append(node2)

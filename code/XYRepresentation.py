@@ -161,38 +161,45 @@ def test():
 #    mp = Map(-5,5,-5,5)
     mp = Map(-7, 8, -7, 8)
     
-    start=(-3,-3)
-    goal=(4,4)
+    start=(-6,7)
+    goal=(6,-6)
 #    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
     mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
     mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
     mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
-    mp.add_Poly([(7,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
+    mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
+    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
     graph=Graph(mp)
 #    for i in range(10):
 #        pt=mp.sample()
 #        graph.addVertex(pt)
 #        pts.append(pt)
-    for i in range(50):
+    for i in range(100):
         graph.addVertex(mp.sample())
         nb=graph.ngd(graph.vertices[i])
         for pt in nb:
             graph.connect(graph.vertices[i],pt)
-            
+    
+     
     graph.addVertex(start)
     nb=graph.ngd(graph.vertices[-1])
     for pt in nb:
-        graph.connect(graph.vertices[i],pt)
+        graph.connect(graph.vertices[-1],pt)
     graph.addVertex(goal)
     nb=graph.ngd(graph.vertices[-1])
     for pt in nb:
-        graph.connect(graph.vertices[i],pt)
+        graph.connect(graph.vertices[-1],pt)
+    
+    mp.points=graph.vertices
+    mp.edges=graph.edges
+    mp.display()
     
     ag=interpret(graph.vertices,graph.edges)
     end = ag.nodes.pop()
     beg = ag.nodes.pop()
     find_path(beg,end)
     iterator = end
+    lines=[]
     while iterator.parent != None:
         lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
         iterator=iterator.parent 
@@ -211,9 +218,9 @@ def test():
 #        graph.connect(graph.vertices[0],pt)
 #    print graph.edges
 #    mp.edges=[((2,2),(-2,2))]
-    mp.points=graph.vertices
-    mp.edges=graph.edges
-    mp.display()
+#    mp.points=graph.vertices
+#    mp.edges=graph.edges
+#    mp.display()
 #    print map.collide((1,1))
 
     
