@@ -16,6 +16,7 @@ from matplotlib import collections as mc
 import shapely.geometry as shapely
 from XYaStarInterpreter import interpret
 from Astar import find_path
+import PRM
 #from descartes.patch import PolygonPatch
 
 class Graph():
@@ -41,13 +42,16 @@ class Graph():
                     distances.insert(counter,dist)
                     neighbors.insert(counter,pt)
         return neighbors
+    def can_connect(self,a,q):
+        return not self.mp.collide(a,q)
     def connect(self,a,q):
-        if self.mp.collide(a,q):
-            return False
-        else:
+        if self.can_connect(a,q):
             if (a,q) not in self.edges and (q,a) not in self.edges:
                 self.edges.append((a,q))
-            return True
+    def sample(self):
+        samp=self.mp.sample()
+        self.addVertex(samp)
+        return samp
 class Map():
     points=[] #PRM points
     edges=[] #PRM edges
@@ -62,7 +66,7 @@ class Map():
         self.hx=hx
         self.ly=ly
         self.hy=hy
-    
+    """Returns a pt that is collision free"""
     def sample(self):
         x=None
         y=None
@@ -164,31 +168,34 @@ def test():
     start=(-6,7)
     goal=(6,-6)
 #    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
-    mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
-    mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
-    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
-    mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
-    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
+#    mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
+#    mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
+#    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
+#    mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
+#    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
     graph=Graph(mp)
 #    for i in range(10):
 #        pt=mp.sample()
 #        graph.addVertex(pt)
 #        pts.append(pt)
-    for i in range(100):
-        graph.addVertex(mp.sample())
-        nb=graph.ngd(graph.vertices[i])
-        for pt in nb:
-            graph.connect(graph.vertices[i],pt)
     
-     
-    graph.addVertex(start)
-    nb=graph.ngd(graph.vertices[-1])
-    for pt in nb:
-        graph.connect(graph.vertices[-1],pt)
-    graph.addVertex(goal)
-    nb=graph.ngd(graph.vertices[-1])
-    for pt in nb:
-        graph.connect(graph.vertices[-1],pt)
+#    PRM.prm_cc(graph,start,goal,100)
+    PRM.prm_k(graph,start,goal,50,3)
+#    PRM.prm_star(graph,start,goal,100)
+    
+#    for i in range(100):
+#        graph.addVertex(mp.sample())
+#        nb=graph.ngd(graph.vertices[i])
+#        for pt in nb:
+#            graph.connect(graph.vertices[i],pt)
+#    graph.addVertex(start)
+#    nb=graph.ngd(graph.vertices[-1])
+#    for pt in nb:
+#        graph.connect(graph.vertices[-1],pt)
+#    graph.addVertex(goal)
+#    nb=graph.ngd(graph.vertices[-1])
+#    for pt in nb:
+#        graph.connect(graph.vertices[-1],pt)
     
     mp.points=graph.vertices
     mp.edges=graph.edges

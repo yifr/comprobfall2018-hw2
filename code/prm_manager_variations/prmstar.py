@@ -21,6 +21,8 @@ def roadmapbuild():
 #               G.addEdge(a,q)
 
 #def astar_search()
-
-roadmapbuild()
+def test():
+    roadmapbuild()
 #astar_search()
+if __name__ == '__main__':
+    test()
