@@ -20,21 +20,26 @@ def move_model(model_name, pose, quaternion):
 	model_state = ModelState()
 
 	model_state.model_name='piano2'
-	model_state.pose.position.x = 10
-	model_state.pose.position.y = 6
-	model_state.pose.position.z = 5
-	model_state.pose.orientation.x = 0
-	model_state.pose.orientation.y = 1
-	model_state.pose.orientation.z = 2
-	model_state.pose.orientation.w = 3
+	model_state.pose.position.x = pose[0]
+	model_state.pose.position.y = pose[1]
+	model_state.pose.position.z = pose[2]
+	model_state.pose.orientation.x = quaternion[0]
+	model_state.pose.orientation.y = quaternion[1]
+	model_state.pose.orientation.z = quaternion[2]
+	model_state.pose.orientation.w = quaternion[3]
 	#print('hello')
 	model_state.reference_frame=""
 	w = Twist()
 	model_state.twist = w
 	rate = rospy.Rate(10)
-	while not rospy.is_shutdown():
+
+	for i in range(11):
 		pub.publish(model_state)
 		rate.sleep()
 
-move_model("piano2",[10,6,5],[0,0,0,0])
+def main():
+	move_model("piano2",[10,6,5],[0,0,0,0])
+
+if __name__ == "__main__":
+	main()
 
