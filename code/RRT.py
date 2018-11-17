@@ -20,8 +20,8 @@ class node():
 XDIM = 640
 YDIM = 480
 WINSIZE = [XDIM, YDIM]
-EPSILON = 7.0
-NUMNODES = 5000
+EPSILON = 10.0
+NUMNODES = 50000
 
 def dist(p1,p2):
     return sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
