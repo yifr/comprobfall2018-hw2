@@ -5,8 +5,8 @@ Created on Fri Nov 16 19:44:25 2018
 @author: lawrence
 """
 
-from gazebo_msgs.msg import GazeboState
-from gazebo_msgs.msg import gazebo.srv
+from gazebo_msgs.msg import ModelState
+from gazebo_msgs.msg import Gazebo.srv
 
 pub = rospy.Publisher('/gazebo/set_model_state', model_state, queue_size=10)
 
