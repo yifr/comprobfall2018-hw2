@@ -10,7 +10,7 @@ import rospy
 
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Twist
-
+import random as rand
 
 rospy.init_node('hello')
 
@@ -38,7 +38,8 @@ def move_model(model_name, pose, quaternion):
 		rate.sleep()
 
 def main():
-	move_model("piano2",[10,6,5],[0,0,0,0])
+	for i in range(50):
+		move_model("piano2",[10,6,5],[rand.uniform(-1,1),rand.uniform(-1,1),rand.uniform(-1,1),rand.uniform(-1,1)])
 
 if __name__ == "__main__":
 	main()
