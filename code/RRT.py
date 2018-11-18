@@ -4,8 +4,10 @@ import numpy as np
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 from matplotlib import animation
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
-########################### Construct Map ################################
+##################### Construct Map in Matplotlib #########################
 fig = plt.figure()
 ax = plt.axes(xlim = (10, -9), ylim = (-7.5, 6.5))
 
@@ -18,8 +20,49 @@ ax.add_patch(wall_2)
 ax.add_patch(wall_3)
 ###########################################################################
 
+############################ Map Class ####################################
+class Map:
+    obstacles = []
 
-############################## RRT Class #################################
+    def __init__(self, x1, x2, y1, y2):
+        self.min_x = x1
+        self.max_x = x2
+        self.min_y = y1
+        self.max_y = y2
+
+    #Shapely library used for all collision detection
+    def add_obstacle(p1, p2, p3, p4)
+        point1 = Point(p1)        
+        point2 = Point(p2)
+        point3 = Point(p3)
+        point4 = Point(p4)
+
+        polygon = Polygon([point1, point2, point3, point4])
+        obstacles.append(polygon)
+        
+
+    def collision_free(p):
+        point = Point(p)
+        for o in obstacles:
+            if point in o:
+                return False
+
+
+    def sample_collision_free():
+        x = random.uniform(x)
+        y = random.uniform(y)
+        theta = random.uniform(-pi, pi)
+        p = (x,y,theta)
+        while not collision_free(p):
+            x = random.uniform(x)
+            y = random.uniform(y)
+            theta = random.uniform(-pi, pi)
+            p = (x,y,theta)
+        
+        return p
+
+
+############################ RRT Class ####################################
 class RRT:
     tire_dia = 0.14605                          #Tired diameter
     max_speed = 17.8816                         #Max speed (m/s)
