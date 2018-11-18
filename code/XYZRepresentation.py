@@ -8,6 +8,7 @@ from pyquaternion import Quaternion
 import random as rand
 import numpy as np
 from pqp_ros_client import pqp_client
+from Piano_Mover import move_model
 
 STEP=0.5
 
@@ -82,6 +83,20 @@ class XYZmap():
             i+=1
         return collision_free
 def main():
-    print "wah"
+    pointa=((0,0,10)(0,0,0,0))
+    pointb=((10,0,10)(0,0,0,0))
+    mp=XYZmap(0,10,0,10,0,10)
+    iterations=int(mp.distance(pointa,pointb)/STEP)
+    i=0
+    while i < iterations:
+        temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/iterations,
+                   pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/iterations,
+                   pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/iterations)
+        temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/iterations,
+                     pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/iterations,
+                     pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/iterations,
+                     pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/iterations)
+        move_model("piano2",temp_pose,temp_orient)
+        i+=1
 if __name__ == "__main__":
     main()
