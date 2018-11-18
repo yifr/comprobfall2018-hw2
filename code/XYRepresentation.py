@@ -97,7 +97,7 @@ class Map():
         self.buff_lines=[]
         self.obstacles=[]
         
-    #vertices are of format [(a,b),(c,d)]
+    """vertices are of format [(a,b),(c,d)]"""
     def add_Poly(self,vertices=[]):
         if self.visibility:
             init_poly=shapely.Polygon(vertices)
@@ -108,39 +108,38 @@ class Map():
             self.obstacles.append((mplpath.Path(vertices),shapely.Polygon(vertices),vertices))
         
     def display(self):
-        #start grid
+        """start grid"""
         fig, ax = plt.subplots()
     
-        #Add Obstacles
+        """Add Obstacles"""
         if self.buff>0 and self.visibility:
             for poly in self.obstacles:
                 ax.add_patch(patches.PathPatch(poly[3], facecolor='orange',alpha=0.5))
         for poly in self.obstacles:
             ax.add_patch(patches.PathPatch(poly[0], facecolor='purple'))
         
-        #Set boundaries
+        """Set boundaries"""
         ax.set_xlim([self.lx,self.hx])
         ax.set_ylim([self.ly,self.hy])
         
-        #add edges
-#        vis_lines=[]
+        """add edges"""
         c=[]
         for edge in self.edges:
             c.append((1,0,0,0.5))
 #            vis_lines.append([(edge[0][0],edge[0][1]),(edge[1][0],edge[1][1])])
         ax.add_collection(mc.LineCollection(self.edges,colors=c,linewidths = 1.0))
         
-        #Set size of plot
+        """Set size of plot"""
         fig_size = plt.rcParams["figure.figsize"]
         fig_size[0] = 12
         fig_size[1] = 9
         plt.rcParams["figure.figsize"] = fig_size
         
-        #draw points
+        """draw points"""
         for pt in self.points:
             plt.plot(pt[0],pt[1],marker='o', markersize=5, color="black")
         
-        #draw lines to the plot
+        """draw lines to the plot"""
         if not self.visibility and self.buff>0:
             path=shapely.LineString(self.buff_lines)
             poly=path.buffer(self.buff)
@@ -150,7 +149,7 @@ class Map():
         ax.add_collection(lc)
         
         
-        #Set up Axis 
+        """Set up Axis """
         ax.minorticks_on()
         ax.xaxis.set_major_locator(plt.MultipleLocator(1))
         ax.yaxis.set_major_locator(plt.MultipleLocator(1))
@@ -167,68 +166,44 @@ def test():
     
     start=(-6,7)
     goal=(6,-6)
-#    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
-#    mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
-#    mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
-#    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
-#    mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
-#    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
+    """Add obstacles"""
+    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
+    mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
+    mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
+    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
+    mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
+    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
     graph=Graph(mp)
-#    for i in range(10):
-#        pt=mp.sample()
-#        graph.addVertex(pt)
-#        pts.append(pt)
     
+    """Create graph for PRM"""
 #    PRM.prm_cc(graph,start,goal,100)
     PRM.prm_k(graph,start,goal,50,3)
 #    PRM.prm_star(graph,start,goal,100)
     
-#    for i in range(100):
-#        graph.addVertex(mp.sample())
-#        nb=graph.ngd(graph.vertices[i])
-#        for pt in nb:
-#            graph.connect(graph.vertices[i],pt)
-#    graph.addVertex(start)
-#    nb=graph.ngd(graph.vertices[-1])
-#    for pt in nb:
-#        graph.connect(graph.vertices[-1],pt)
-#    graph.addVertex(goal)
-#    nb=graph.ngd(graph.vertices[-1])
-#    for pt in nb:
-#        graph.connect(graph.vertices[-1],pt)
-    
+    """Add graph and tree to display and print out what it looks"""
     mp.points=graph.vertices
     mp.edges=graph.edges
     mp.display()
     
+    """Run A-Star to find a path"""
     ag=interpret(graph.vertices,graph.edges)
-    end = ag.nodes.pop()
-    beg = ag.nodes.pop()
+    end = ag.nodes.pop()#end is always last of list
+    beg = ag.nodes.pop()#beginning is second to last
     find_path(beg,end)
     iterator = end
+    
+    """Get line segments to draw a-star path"""
     lines=[]
     while iterator.parent != None:
         lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
         iterator=iterator.parent 
-        
+    lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
+    
+    """Input all of data to map display and display it"""
     mp.lines=lines
     mp.points=graph.vertices
     mp.edges=graph.edges
     mp.display()
-#    graph.addVertex((-2,-2))
-#    print graph.ngd(graph.vertices[0])
-#    graph.addVertex((2,2))
-#    print graph.ngd(graph.vertices[0])
-#    graph.addVertex((-2,2))
-#    nb=graph.ngd(graph.vertices[0])
-#    for pt in nb:
-#        graph.connect(graph.vertices[0],pt)
-#    print graph.edges
-#    mp.edges=[((2,2),(-2,2))]
-#    mp.points=graph.vertices
-#    mp.edges=graph.edges
-#    mp.display()
-#    print map.collide((1,1))
 
     
 if __name__ == '__main__':
