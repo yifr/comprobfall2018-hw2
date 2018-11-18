@@ -72,21 +72,25 @@ class XYZmap():
         collision_free=True
         i=0
         while collision_free and i < iterations:
-            temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/float(iterations),
-                [1]+(pointb[0][1]-pointa[0][1])*i/float(iterations),
-                [2]+(pointb[0][2]-pointa[0][2])*i/float(iterations))
-            temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/float(iterations),
+		temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/float(iterations),
+		pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/float(iterations),
+		pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/float(iterations))
+		temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/float(iterations),
 			       pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/float(iterations),
 			       pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/float(iterations),
 			       pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/float(iterations))
-            quat=Quaternion(temp_orient)
-            quat_list=quat.rotation_matrix
-            flat_quat=[]
-            for lis in quat_list:
-                for val in lis:
-                    flat_quat.append(val)
-            collision_free=not pqp_client(temp_pose,flat_quat)
-            i+=1
+		quat=Quaternion(temp_orient)
+		quat_list=quat.rotation_matrix
+		flat_quat=[]
+		for lis in quat_list:
+			for val in lis:
+			    flat_quat.append(val)
+		print temp_pose,temp_orient
+		result=str(pqp_client(temp_pose,flat_quat))=="result: False"
+		print result
+		collision_free=result
+		
+		i+=1
         return collision_free
     
 def interpret(vertices,edges):
@@ -154,13 +158,21 @@ def heuristic(n, m):
 #    h_n=dx+dy
     return h_n 
 def main():
-    pointa=((0,0,1),(1.0,0.0,0.0,0.0))
-    pointb=((10,0,1),(0,2.0,1.0,4.0))
-	
-    mp=XYZmap(-10,10,-10,10,-10,10)
-    pm=pianoMover()
-    print pm.collide(pointa,pointb)
-    
+	pointa=((3,4,2),(1.0,0.0,0.0,0.0))
+	pointb=((3,6,2),(0,2.0,1.0,4.0))
+	pm=pianoMover()	
+	pm.move_model("piano2",pointb[0],pointb[1])
+
+	mp=XYZmap(-10,10,-10,10,-10,10)
+	quat=Quaternion(pointa[1])
+	quat_list=quat.rotation_matrix
+	flat_quat=[]
+	for lis in quat_list:
+		for val in lis:
+		    flat_quat.append(val)
+
+	print (pqp_client(pointa[0],flat_quat)==False)
+	print mp.collide(pointa,pointb)
 #	
 #	iterations=int(mp.distance(pointa,pointb)/STEP)
 #	i=0
