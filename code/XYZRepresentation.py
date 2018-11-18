@@ -10,6 +10,8 @@ import numpy as np
 from pqp_ros_client import pqp_client
 from Piano_Mover import pianoMover
 import math
+from Astar import find_path
+import PRM
 
 STEP=0.5
 
@@ -61,7 +63,12 @@ class XYZmap():
             pose=(rand.uniform(self.lx,self.hx),rand.uniform(self.ly,self.hy),rand.uniform(self.lz,self.hz))
             orientation=(rand.uniform(-1,1),rand.uniform(-1,1),rand.uniform(-1,1),rand.uniform(-1,1))
             quat = Quaternion(orientation)
-            valid= not pqp_client(pose,quat.rotation_matrix)
+            quat_list=quat.rotation_matrix
+            flat_quat=[]
+            for lis in quat_list:
+                for val in lis:
+                    flat_quat.append(val)
+            valid= str(pqp_client(pose,flat_quat))=="result: False"
         return (pose,orientation)
     def distance(self,pointa,pointb):
         a=pointa[0]
@@ -72,26 +79,26 @@ class XYZmap():
         collision_free=True
         i=0
         while collision_free and i < iterations:
-		temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/float(iterations),
-		pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/float(iterations),
-		pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/float(iterations))
-		temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/float(iterations),
-			       pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/float(iterations),
-			       pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/float(iterations),
-			       pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/float(iterations))
-		quat=Quaternion(temp_orient)
-		quat_list=quat.rotation_matrix
-		flat_quat=[]
-		for lis in quat_list:
-			for val in lis:
-			    flat_quat.append(val)
-		print temp_pose,temp_orient
-		result=str(pqp_client(temp_pose,flat_quat))=="result: False"
-		print result
-		collision_free=result
+        		temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/float(iterations),
+            		pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/float(iterations),
+            		pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/float(iterations))
+        		temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/float(iterations),
+        			       pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/float(iterations),
+        			       pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/float(iterations),
+        			       pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/float(iterations))
+        		quat=Quaternion(temp_orient)
+        		quat_list=quat.rotation_matrix
+        		flat_quat=[]
+        		for lis in quat_list:
+        			for val in lis:
+        			    flat_quat.append(val)
+        		print temp_pose,temp_orient
+        		result=str(pqp_client(temp_pose,flat_quat))=="result: False"
+        		print result
+        		collision_free=result
 		
-		i+=1
-        return collision_free
+        		i+=1
+        return not collision_free
     
 def interpret(vertices,edges):
     graph=aStarGraph(vertices,edges)
@@ -125,20 +132,19 @@ class aStarGraph():
 class node():
     g=0
     vis=False
-    def __init__(self,coord):
-        self.x=coord[0]
-        self.y=coord[1]
+    def __init__(self,pose):
+        self.pose=pose
         self.connected=[]
         self.parent = None
     
-    def equal(self,node=None,coord=None):
+    def equal(self,node=None,pose=None):
         if node!=None:
-            if self.x==node.x and self.y==node.y:
+            if self.pose==node.pose:
                 return True
             else:
                 return False
-        elif coord!=None:
-            if self.x==coord[0] and self.y==coord[1]:
+        elif pose!=None:
+            if self.pose==pose:
                 return True
             else:
                 return False
@@ -152,27 +158,53 @@ class node():
 
     #Using straight line distance as heuristic
 def heuristic(n, m):
-    dx = abs(n.x - m.x)
-    dy = abs(n.y - m.y)
-    h_n = np.sqrt(math.pow(dx,2) + math.pow(dy,2))
-#    h_n=dx+dy
-    return h_n 
+    a=n[0]
+    b=m[0]
+    return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
 def main():
-	pointa=((3,4,2),(1.0,0.0,0.0,0.0))
-	pointb=((3,6,2),(0,2.0,1.0,4.0))
-	pm=pianoMover()	
-	pm.move_model("piano2",pointb[0],pointb[1])
+#	pointa=((3,4,2),(1.0,0.0,0.0,0.0))
+#	pointb=((3,6,2),(0,2.0,1.0,4.0))
+#	pm=pianoMover()	
+#	pm.move_model("piano2",pointb[0],pointb[1])
+#
+#	mp=XYZmap(-10,10,-10,10,-10,10)
+#	quat=Quaternion(pointa[1])
+#	quat_list=quat.rotation_matrix
+#	flat_quat=[]
+#	for lis in quat_list:
+#		for val in lis:
+#		    flat_quat.append(val)
+#
+#	print (pqp_client(pointa[0],flat_quat)==False)
+#	print mp.collide(pointa,pointb)
+    mp = XYZmap(-10,10,-10,10,0,4)
+    
+    start=((-6,7,2),(0,0,0,0))
+    goal=((6,-6,2),(0,0,0,0))
 
-	mp=XYZmap(-10,10,-10,10,-10,10)
-	quat=Quaternion(pointa[1])
-	quat_list=quat.rotation_matrix
-	flat_quat=[]
-	for lis in quat_list:
-		for val in lis:
-		    flat_quat.append(val)
-
-	print (pqp_client(pointa[0],flat_quat)==False)
-	print mp.collide(pointa,pointb)
+    graph=Graph(mp)
+    
+#    PRM.prm_cc(graph,start,goal,100)
+    PRM.prm_k(graph,start,goal,50,3)
+#    PRM.prm_star(graph,start,goal,100)
+    
+    mp.points=graph.vertices
+    mp.edges=graph.edges
+    mp.display()
+    
+    ag=interpret(graph.vertices,graph.edges)
+    end = ag.nodes.pop()
+    beg = ag.nodes.pop()
+    find_path(beg,end)
+    iterator = end
+    pts=[]
+    while iterator.parent != None:
+        pts.append(iterator.pose)
+        iterator=iterator.parent
+    pm=pianoMover()	
+    for pt in pts:
+        pm.move_model("piano2",pt[0],pt[1])
+        
 #	
 #	iterations=int(mp.distance(pointa,pointb)/STEP)
 #	i=0
