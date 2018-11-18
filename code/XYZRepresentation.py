@@ -70,10 +70,14 @@ class XYZmap():
                     flat_quat.append(val)
             valid= str(pqp_client(pose,flat_quat))=="result: False"
         return (pose,orientation)
+
+
     def distance(self,pointa,pointb):
         a=pointa[0]
         b=pointb[0]
         return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
+
+
     def collide(self,pointa,pointb):
         iterations=int(self.distance(pointa,pointb)/STEP)
         collision_free=True
