@@ -4,11 +4,11 @@ Created on Sat Nov 17 14:43:56 2018
 
 @author: lawrence
 """
-from pyquaternion import Quaternion
+#from pyquaternion import Quaternion
 import random as rand
 import numpy as np
 from pqp_ros_client import pqp_client
-from Piano_Mover import move_model
+from Piano_Mover import pianoMover
 
 STEP=0.5
 
@@ -82,21 +82,26 @@ class XYZmap():
             collision_free=not pqp_client(temp_pose,quat.rotation_matrix)
             i+=1
         return collision_free
+
 def main():
-    pointa=((0,0,10)(0,0,0,0))
-    pointb=((10,0,10)(0,0,0,0))
-    mp=XYZmap(0,10,0,10,0,10)
-    iterations=int(mp.distance(pointa,pointb)/STEP)
-    i=0
-    while i < iterations:
-        temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/iterations,
-                   pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/iterations,
-                   pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/iterations)
-        temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/iterations,
-                     pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/iterations,
-                     pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/iterations,
-                     pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/iterations)
-        move_model("piano2",temp_pose,temp_orient)
-        i+=1
+    	pointa=((0,0,4),(1.0,0.0,0.0,0.0))
+    	pointb=((10,0,4),(0,2.0,1.0,4.0))
+	print "hello"
+	mp=XYZmap(0,10,0,10,0,10)
+	pm=pianoMover()
+	print "hi"
+	iterations=int(mp.distance(pointa,pointb)/STEP)
+	i=0
+	while i < iterations:
+		temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/iterations,
+			   pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/iterations,
+			   pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/iterations)
+		temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*float(i/float(iterations)),
+			     pointa[1][1]+(pointb[1][1]-pointa[1][1])*float(i/float(iterations)),
+			     pointa[1][2]+(pointb[1][2]-pointa[1][2])*float(i/float(iterations)),
+			     pointa[1][3]+(pointb[1][3]-pointa[1][3])*float(i/float(iterations)))
+		pm.move_model("piano2",temp_pose,temp_orient)
+		print temp_orient
+		i+=1
 if __name__ == "__main__":
-    main()
+    	main()
