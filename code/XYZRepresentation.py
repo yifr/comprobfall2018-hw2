@@ -73,12 +73,12 @@ class XYZmap():
         i=0
         while collision_free and i < iterations:
             temp_pose=(pointa[0][0]+(pointb[0][0]-pointa[0][0])*i/float(iterations),
-			   pointa[0][1]+(pointb[0][1]-pointa[0][1])*i/float(iterations),
-			   pointa[0][2]+(pointb[0][2]-pointa[0][2])*i/float(iterations))
-		temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/float(iterations),
-			     pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/float(iterations),
-			     pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/float(iterations),
-			     pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/float(iterations))
+                [1]+(pointb[0][1]-pointa[0][1])*i/float(iterations),
+                [2]+(pointb[0][2]-pointa[0][2])*i/float(iterations))
+            temp_orient=(pointa[1][0]+(pointb[1][0]-pointa[1][0])*i/float(iterations),
+			       pointa[1][1]+(pointb[1][1]-pointa[1][1])*i/float(iterations),
+			       pointa[1][2]+(pointb[1][2]-pointa[1][2])*i/float(iterations),
+			       pointa[1][3]+(pointb[1][3]-pointa[1][3])*i/float(iterations))
             quat=Quaternion(temp_orient)
             quat_list=quat.rotation_matrix
             flat_quat=[]
