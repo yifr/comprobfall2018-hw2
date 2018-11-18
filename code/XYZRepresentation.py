@@ -116,9 +116,9 @@ class aStarGraph():
             node2=None
             counter=0
             while node1==None or node2==None:
-                if node1==None and nodes[counter].equal(coord=edge[0]):
+                if node1==None and nodes[counter].equal(pose=edge[0]):
                     node1=nodes[counter]
-                if node2==None and nodes[counter].equal(coord=edge[1]):
+                if node2==None and nodes[counter].equal(pose=edge[1]):
                     node2=nodes[counter]
                 counter+=1
             node1.connected.append(node2)
@@ -177,33 +177,32 @@ def main():
 #
 #	print (pqp_client(pointa[0],flat_quat)==False)
 #	print mp.collide(pointa,pointb)
-    mp = XYZmap(-10,10,-10,10,0,4)
-    
-    start=((-6,7,2),(0,0,0,0))
-    goal=((6,-6,2),(0,0,0,0))
+	mp = XYZmap(-10,10,-10,10,0.4,4)
 
-    graph=Graph(mp)
-    
-#    PRM.prm_cc(graph,start,goal,100)
-    PRM.prm_k(graph,start,goal,50,3)
-#    PRM.prm_star(graph,start,goal,100)
-    
-    mp.points=graph.vertices
-    mp.edges=graph.edges
-    mp.display()
-    
-    ag=interpret(graph.vertices,graph.edges)
-    end = ag.nodes.pop()
-    beg = ag.nodes.pop()
-    find_path(beg,end)
-    iterator = end
-    pts=[]
-    while iterator.parent != None:
-        pts.append(iterator.pose)
-        iterator=iterator.parent
-    pm=pianoMover()	
-    for pt in pts:
-        pm.move_model("piano2",pt[0],pt[1])
+	start=((3,4,2),(0.0,0.0,0.0,0.0))
+	goal=((3,6,2),(0.0,0.0,0.0,0.0))
+
+	graph=Graph(mp)
+	
+
+	#    PRM.prm_cc(graph,start,goal,100)
+	PRM.prm_k(graph,start,goal,50,3)
+	#    PRM.prm_star(graph,start,goal,100)
+	
+	print graph.edges
+
+	ag=interpret(graph.vertices,graph.edges)
+	end = ag.nodes.pop()
+	beg = ag.nodes.pop()
+	find_path(beg,end)
+	iterator = end
+	pts=[]
+	while iterator.parent != None:
+		pts.append(iterator.pose)
+		iterator=iterator.parent
+	pm=pianoMover()	
+	for pt in pts:
+		pm.move_model("piano2",pt[0],pt[1])
         
 #	
 #	iterations=int(mp.distance(pointa,pointb)/STEP)
