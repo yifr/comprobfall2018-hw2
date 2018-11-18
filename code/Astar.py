@@ -10,7 +10,7 @@ import numpy as np
 import math
 
 import heapq as hq
-from XYaStarInterpreter import heuristic
+from XYZRepresentation import heuristic
 
     
 ######################
