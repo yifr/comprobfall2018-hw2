@@ -63,8 +63,8 @@ def find_path(start, goal):
                
     print "No path found"
 def heuristic(n, m):
-    a=n[0]
-    b=m[0]
+    a=n.pose[0]
+    b=m.pose[0]
     return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
 def updateVertex(current,succ,fringe,goal):
     #use heuristic to get cost of travel (assume heuristic=cost)

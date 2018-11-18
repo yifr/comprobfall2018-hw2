@@ -26,7 +26,7 @@ class Graph():
         neighbors=[]
         distances=[]
         for pt in self.vertices:
-            if pt==a:
+            if pt!=a:
                 dist=self.mp.distance(pt,a)
                 if not distances:
                     distances.append(dist)
@@ -180,7 +180,7 @@ def main():
 	mp = XYZmap(-10,10,-10,10,0.4,4)
 
 	start=((3,4,2),(0.0,0.0,0.0,0.0))
-	goal=((3,6,2),(0.0,0.0,0.0,0.0))
+	goal=((3,7,2),(0.0,0.0,0.0,0.0))
 
 	graph=Graph(mp)
 	
@@ -189,7 +189,7 @@ def main():
 	PRM.prm_k(graph,start,goal,50,3)
 	#    PRM.prm_star(graph,start,goal,100)
 	
-	print graph.edges
+	
 
 	ag=interpret(graph.vertices,graph.edges)
 	end = ag.nodes.pop()
@@ -197,13 +197,19 @@ def main():
 	find_path(beg,end)
 	iterator = end
 	pts=[]
+	print end.pose
 	while iterator.parent != None:
 		pts.append(iterator.pose)
 		iterator=iterator.parent
+	pts.append(iterator.pose)
 	pm=pianoMover()	
+	print pts
+	pts.reverse()
+	print pts
 	for pt in pts:
 		pm.move_model("piano2",pt[0],pt[1])
-        
+	
+        #pm.move_model("piano2",end.pose[0],end.pose[1])
 #	
 #	iterations=int(mp.distance(pointa,pointb)/STEP)
 #	i=0
