@@ -70,14 +70,10 @@ class XYZmap():
                     flat_quat.append(val)
             valid= str(pqp_client(pose,flat_quat))=="result: False"
         return (pose,orientation)
-
-
     def distance(self,pointa,pointb):
         a=pointa[0]
         b=pointb[0]
         return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
-
-
     def collide(self,pointa,pointb):
         iterations=int(self.distance(pointa,pointb)/STEP)
         collision_free=True
@@ -96,9 +92,9 @@ class XYZmap():
         		for lis in quat_list:
         			for val in lis:
         			    flat_quat.append(val)
-        		print temp_pose,temp_orient
+        		#print temp_pose,temp_orient
         		result=str(pqp_client(temp_pose,flat_quat))=="result: False"
-        		print result
+        		#print result
         		collision_free=result
 		
         		i+=1
@@ -165,6 +161,9 @@ def heuristic(n, m):
     a=n[0]
     b=m[0]
     return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
+def test():
+	pm=pianoMover()	
+	pm.move_model("piano2",(3.5,4,0.4),(0,0,0,0))
 def main():
 #	pointa=((3,4,2),(1.0,0.0,0.0,0.0))
 #	pointb=((3,6,2),(0,2.0,1.0,4.0))
@@ -183,8 +182,8 @@ def main():
 #	print mp.collide(pointa,pointb)
 	mp = XYZmap(-10,10,-10,10,0.4,4)
 
-	start=((3,4,2),(0.0,0.0,0.0,0.0))
-	goal=((3,7,2),(0.0,0.0,0.0,0.0))
+	start=((3.0,8.5,0.4),(0.0,0.0,0.0,0.0))
+	goal=((3.5,4.0,0.4),(0.0,0.0,0.0,0.0))
 
 	graph=Graph(mp)
 	
@@ -201,7 +200,7 @@ def main():
 	find_path(beg,end)
 	iterator = end
 	pts=[]
-	print end.pose
+	print graph.edges
 	while iterator.parent != None:
 		pts.append(iterator.pose)
 		iterator=iterator.parent
@@ -210,8 +209,25 @@ def main():
 	print pts
 	pts.reverse()
 	print pts
+	latter=pts[0]
 	for pt in pts:
+		iterations=int(mp.distance(latter,pt)/STEP)
+		i=0
+		while i < iterations:
+			print latter[0][1],",",pt[0][1],",",i
+			temp_pose=(latter[0][0]+(pt[0][0]-latter[0][0])*i/float(iterations),
+				   latter[0][1]+(pt[0][1]-latter[0][1])*i/float(iterations),
+				   latter[0][2]+(pt[0][2]-latter[0][2])*i/float(iterations))
+			temp_orient=(latter[1][0]+(pt[1][0]-latter[1][0])*i/float(iterations),
+				     latter[1][1]+(pt[1][1]-latter[1][1])*i/float(iterations),
+				     latter[1][2]+(pt[1][2]-latter[1][2])*i/float(iterations),
+				     latter[1][3]+(pt[1][3]-latter[1][3])*i/float(iterations))
+			pm.move_model("piano2",temp_pose,temp_orient)
+			print temp_pose,temp_orient
+			i+=1
 		pm.move_model("piano2",pt[0],pt[1])
+		latter=pt
+		#pm.move_model("piano2",pt[0],pt[1])
 	
         #pm.move_model("piano2",end.pose[0],end.pose[1])
 #	

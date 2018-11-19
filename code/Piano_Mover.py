@@ -35,7 +35,7 @@ class pianoMover():
 		model_state.twist = w
 		rate = rospy.Rate(10)
 
-		for i in range(11):
+		for i in range(15):
 			self.pub.publish(model_state)
 			rate.sleep()
 
