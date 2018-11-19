@@ -10,7 +10,7 @@ import heapq as hq
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-max_speed = 17.8816   #m/s
+max_speed = 10#17.8816   #m/s
 max_turn = 0.785398   #radians
 unit_time = 0.2
 
@@ -48,7 +48,9 @@ class Map:
     
     def draw(self, x,y):
         plt.plot([x, x+.01],[y, y +.01], '0.30',lw=0.75)
-
+    
+    def plot(self,node):
+        plt.plot(node.x,node.y,marker='o', markersize=5, color="red")
 
     def collision_free(self, p1, p0=None):
         (x,y) = (p1.x, p1.y)
@@ -94,6 +96,8 @@ class node:
             return self.x==node.x and self.y==node.y and self.theta==node.theta
         if pose!=None:
             return self.x==pose[0] and self.y==pose[1] and self.theta==pose[2]
+    def set_parent(self,parent):
+        self.parent=parent 
 class RRT:
     nodes = []
     
@@ -198,9 +202,17 @@ class RRT:
             if self.distance(self.nodes[i],goal)<shortest:
                 index=i
         return index
+    def get_neighbor(self,check):
+        neighbors=[]
+        for node in self.nodes:
+            for child in check.children:
+                if node.equal(child[0]):
+                    neighbors.append(node)
+        return neighbors
+                
 ######################### A Star ##################################################
 
-def find_path(start, goal):
+def find_path(start, goal, T):
     fringe = [] #Nodes we are considering expanding
     closed = [] #Nodes we have visited
     #get start spot
@@ -227,7 +239,7 @@ def find_path(start, goal):
             return True
         
         #get neighbors list
-        neighbors = current_tuple[1].children[0]
+        neighbors = T.get_neighbor(current_tuple[1])
         
         for neighbor in neighbors:
             in_closed =False
@@ -259,8 +271,9 @@ def heuristic(n1, n2):
 ##    h_n=dx+dy
 #    return h_n 
 def travel(n1,n2):
-    for child in n1:
-        print ""
+    for child in n1.children:
+        if n2.equal(child[0]):
+            return child[1][0]*unit_time
 def updateVertex(current,succ,fringe,goal):
     #use heuristic to get cost of travel (assume heuristic=cost)
     c_val=travel(current,succ)
@@ -285,11 +298,14 @@ def main():
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
     
     T = RRT()
-    T.build_tree(300, m, greedy=True)
-    plt.show()
+    T.build_tree(400, m, greedy=True)
     start=T.nodes[0]
-    goal=T.get_goal_index()
-    
-    
+    goal=T.nodes[T.get_goal_index()]
+    find_path(start,goal,T)
+    iterator=goal
+    while iterator!=None:
+        m.plot(iterator)
+        iterator=iterator.parent
+    plt.show()
 if __name__ == "__main__":
     main()
