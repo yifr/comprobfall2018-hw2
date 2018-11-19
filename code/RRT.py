@@ -61,7 +61,7 @@ class Map:
         #Check that point isn't in a wall:
         point = Point([x,y])
         for o in self.obstacles:
-            if point.within(o) or o.contains(point):
+            if point.within(o) and not point.touches(o):
                 return False 
         return True
 
@@ -290,24 +290,50 @@ def updateVertex(current,succ,fringe,goal):
         hq.heappush(fringe, (f_n,succ))
 
 ###########################################################################  
-
+def average(intlist):
+    total=0
+    for val in intlist:
+        total+=val
+    if len(intlist)>0:
+        return total/float(len(intlist))
+    else:
+        return -1
+def sd(intlist):
+    avg= average(intlist)
+    variance=0
+    for val in intlist:
+        variance+=np.square(val-avg)
+    if len(intlist)>0:
+        variance= variance/float(len(intlist))
+        return np.sqrt(variance)
+    else:
+        return -1
 
 def main():
     m = Map(-9, 10, -7.5, 6.5)
     m.add_obstacle((6,2.9), (6.3,2.9), (6.3,-4.2), (6,-4.2))
     m.add_obstacle((1.2,6.5), (1.5,6.5),  (1.5,-1.5), (1.2,-1.5))
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
-    m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
     
-    T = RRT()
-    T.build_tree(100, m, greedy=True)
-    start=T.nodes[0]
-    goal=T.nodes[T.get_goal_index()]
-    find_path(start,goal,T)
-    iterator=goal
-    while iterator!=None:
-        m.plot(iterator)
-        iterator=iterator.parent
-    plt.show()
+    stats=[]
+    for i in range(2):
+        raw_dat=[]
+        for j in range(2):
+            T = RRT()
+            T.build_tree(i*10+10, m, greedy=False)
+            start=T.nodes[0]
+            goal=T.nodes[T.get_goal_index()]
+            find_path(start,goal,T)
+            raw_dat.append(goal.g+T.distance(goal,node(10,6.5,pi))*1.5)
+        stats.append((average(raw_dat),sd(raw_dat)))
+    print stats
+#    start=T.nodes[0]
+#    goal=T.nodes[T.get_goal_index()]
+#    find_path(start,goal,T)
+#    iterator=goal
+#    while iterator!=None:
+#        m.plot(iterator)
+#        iterator=iterator.parent
+#    plt.show()
 if __name__ == "__main__":
     main()
