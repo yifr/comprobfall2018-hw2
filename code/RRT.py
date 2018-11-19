@@ -12,7 +12,7 @@ from shapely.geometry.polygon import Polygon
 
 max_speed = 10#17.8816   #m/s
 max_turn = 0.785398   #radians
-unit_time = 0.2
+unit_time = 0.25
 
 ############################ Map Class ####################################
 class Map:
@@ -145,8 +145,9 @@ class RRT:
             trajectories.append(self.trajectory(q_near, control))
 
         if greedy == True:
+            goal=node(10, 6.5, pi)
             #Find control closest to random node
-            dmin = self.distance(trajectories[0][-1], q_rand) / 2
+            dmin = self.distance(trajectories[0][-1], goal) / 2
             nnear = 0
             for i in range(1, len(trajectories)):
                 n = trajectories[i][-1]
@@ -184,7 +185,7 @@ class RRT:
         path.append(d0)
         speed = control[0]
         turn = control[1]
-        dt = 0.005
+        dt = 0.01
 
         #Integrate control forwards:
         for i in range(1,int(unit_time/dt)):
@@ -296,9 +297,10 @@ def main():
     m.add_obstacle((6,2.9), (6.3,2.9), (6.3,-4.2), (6,-4.2))
     m.add_obstacle((1.2,6.5), (1.5,6.5),  (1.5,-1.5), (1.2,-1.5))
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
+    m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
     
     T = RRT()
-    T.build_tree(400, m, greedy=True)
+    T.build_tree(100, m, greedy=True)
     start=T.nodes[0]
     goal=T.nodes[T.get_goal_index()]
     find_path(start,goal,T)
