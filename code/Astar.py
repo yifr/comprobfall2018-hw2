@@ -38,7 +38,7 @@ def find_path(start, goal):
             print("step %d"%(counter))
             goal.set_parent(current_tuple[1].parent)
             goal.g=current_tuple[1].g
-            return True
+            return closed
         
         #get neighbors list
         neighbors = current_tuple[1].connected
@@ -60,17 +60,12 @@ def find_path(start, goal):
                     neighbor.set_parent(None)
                     
                 updateVertex(current_tuple[1],neighbor,fringe,goal)
+               
     print "No path found"
-    return False        
 def heuristic(n, m):
-#    a=n.pose[0]
-#    b=m.pose[0]
-#    return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
-    dx = abs(n.x - m.x)
-    dy = abs(n.y - m.y)
-    h_n = np.sqrt(math.pow(dx,2) + math.pow(dy,2))
-#    h_n=dx+dy
-    return h_n 
+    a=n.pose[0]
+    b=m.pose[0]
+    return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
 def updateVertex(current,succ,fringe,goal):
     #use heuristic to get cost of travel (assume heuristic=cost)
     c_val=heuristic(current,succ)
