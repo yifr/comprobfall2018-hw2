@@ -5,6 +5,7 @@ import matplotlib.patches as patches
 import math
 import random
 from math import pi as pi
+import heapq as hq
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
@@ -79,14 +80,20 @@ class Map:
 		
 ############################ RRT Class ####################################
 class node:
-     def __init__(self, x, y, theta):
+    def __init__(self, x, y, theta):
         self.x = x
         self.y = y
         self.theta = theta
         self.lin_vel = 0
         self.ang_vel = 0
         self.children = []
-
+        self.g=0
+        self.parent=None
+    def equal(self, node=None,pose=None):
+        if node!=None:
+            return self.x==node.x and self.y==node.y and self.theta==node.theta
+        if pose!=None:
+            return self.x==pose[0] and self.y==pose[1] and self.theta==pose[2]
 class RRT:
     nodes = []
     
@@ -183,7 +190,90 @@ class RRT:
             di = node(x,y, theta)
             path.append(di)
         return path
+    def get_goal_index(self):
+        goal=node(10, 6.5, pi)
+        shortest=100
+        index=0
+        for i in range(len(self.nodes)):
+            if self.distance(self.nodes[i],goal)<shortest:
+                index=i
+        return index
+######################### A Star ##################################################
 
+def find_path(start, goal):
+    fringe = [] #Nodes we are considering expanding
+    closed = [] #Nodes we have visited
+    #get start spot
+    start.g = 0 #Starting node has g value = 0
+    startnode=start
+    #Put start in the fringe with f value = 0:
+    hq.heappush(fringe, (0,startnode))
+    current_tuple=None
+    counter = 0
+    
+    while(fringe):
+        #Pop node with the smallest f value from heap
+        current_tuple = hq.heappop(fringe)
+        
+        counter+=1
+            
+        closed.append(current_tuple[1])
+        
+        if current_tuple[1].equal(goal):
+            print "Found Goal!"
+            print("step %d"%(counter))
+            goal.set_parent(current_tuple[1].parent)
+            goal.g=current_tuple[1].g
+            return True
+        
+        #get neighbors list
+        neighbors = current_tuple[1].children[0]
+        
+        for neighbor in neighbors:
+            in_closed =False
+            for traversed in closed:
+                if traversed.equal(neighbor):
+                    in_closed = True
+                
+            if not in_closed:
+                in_open = False
+                for open_node in fringe:
+                    if open_node[1].equal(neighbor):
+                        in_open = True
+                        neighbor=open_node[1]
+                if not in_open:
+                    neighbor.g=-1
+                    neighbor.set_parent(None)
+                    
+                updateVertex(current_tuple[1],neighbor,fringe,goal)
+    print "No path found"
+    return False        
+def heuristic(n1, n2):
+    euclidean = math.sqrt((n1.x - n2.x)**2+(n1.y - n2.y)**2)
+    d_rot1 = math.atan2(n2.y-n1.y, n2.x-n1.x) - n1.theta
+    d_rot2 = n2.theta - n1.theta - d_rot1
+    return euclidean+d_rot1+d_rot2
+#    dx = abs(n.x - m.x)
+#    dy = abs(n.y - m.y)
+#    h_n = np.sqrt(math.pow(dx,2) + math.pow(dy,2))
+##    h_n=dx+dy
+#    return h_n 
+def travel(n1,n2):
+    for child in n1:
+        print ""
+def updateVertex(current,succ,fringe,goal):
+    #use heuristic to get cost of travel (assume heuristic=cost)
+    c_val=travel(current,succ)
+    #update g value for vertex
+    if current.g + c_val < succ.g or succ.g<0:
+        succ.g = current.g+c_val
+        succ.set_parent(current)
+        for open_node in fringe:
+            if open_node[1].equal(succ):
+                fringe.remove(open_node)    
+        h_n = heuristic(succ,goal)
+        f_n = h_n + succ.g 
+        hq.heappush(fringe, (f_n,succ))
 
 ###########################################################################  
 
@@ -197,7 +287,9 @@ def main():
     T = RRT()
     T.build_tree(300, m, greedy=True)
     plt.show()
-
-     
+    start=T.nodes[0]
+    goal=T.get_goal_index()
+    
+    
 if __name__ == "__main__":
     main()
