@@ -167,18 +167,18 @@ def test():
     start=(-6,7)
     goal=(6,-6)
     """Add obstacles"""
-    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
+#    mp.add_Poly([(-1,-1),(-1,1),(1,1),(1,-1)])
     mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
     mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
     mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
     mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
-    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
+#    mp.add_Poly([(-2,0),(-2,-1),(2,-1),(2,0)])
     graph=Graph(mp)
     
     """Create graph for PRM"""
 #    PRM.prm_cc(graph,start,goal,100)
-    PRM.prm_k(graph,start,goal,50,3)
-#    PRM.prm_star(graph,start,goal,100)
+#    PRM.prm_k(graph,start,goal,100,3)
+    PRM.prm_star(graph,start,goal,100)
     
     """Add graph and tree to display and print out what it looks"""
     mp.points=graph.vertices
@@ -186,24 +186,24 @@ def test():
     mp.display()
     
     """Run A-Star to find a path"""
-    ag=interpret(graph.vertices,graph.edges)
-    end = ag.nodes.pop()#end is always last of list
-    beg = ag.nodes.pop()#beginning is second to last
-    find_path(beg,end)
-    iterator = end
-    
-    """Get line segments to draw a-star path"""
-    lines=[]
-    while iterator.parent != None:
-        lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
-        iterator=iterator.parent 
-    lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
-    
-    """Input all of data to map display and display it"""
-    mp.lines=lines
-    mp.points=graph.vertices
-    mp.edges=graph.edges
-    mp.display()
+#    ag=interpret(graph.vertices,graph.edges)
+#    end = ag.nodes.pop()#end is always last of list
+#    beg = ag.nodes.pop()#beginning is second to last
+#    find_path(beg,end)
+#    iterator = end
+#    
+#    """Get line segments to draw a-star path"""
+#    lines=[]
+#    while iterator.parent != None:
+#        lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
+#        iterator=iterator.parent 
+#    lines.append([(iterator.x,iterator.y),(iterator.parent.x,iterator.parent.y)])
+#    
+#    """Input all of data to map display and display it"""
+#    mp.lines=lines
+#    mp.points=graph.vertices
+#    mp.edges=graph.edges
+#    mp.display()
 
     
 if __name__ == '__main__':

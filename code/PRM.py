@@ -77,9 +77,6 @@ def prm_star(graph,start,goal,iterations):
         nb = nb[0:k] #returns first k of list
         for q in nb:
             graph.connect(samp,q)
-        graph.mp.points=graph.vertices
-        graph.mp.edges=graph.edges
-        graph.mp.display()
 
 def test():
     print int(10.9)
