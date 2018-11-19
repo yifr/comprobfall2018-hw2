@@ -8,55 +8,81 @@ from math import pi as pi
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+'''
+fig = plt.figure()
+ax = plt.axes(xlim = (10, -9), ylim = (-7.5, 6.5))
 
+wall_1 = patches.Rectangle((6,-4.2),.3, 7.1, fill=True)
+wall_2 = patches.Rectangle((1.2, -1.5), width=.3, height=7.5, fill=True)
+wall_3 = patches.Rectangle((-4.5, -7.5), width=.3, height=8.5, fill=True)
 
+ax.add_patch(wall_1)
+ax.add_patch(wall_2)
+ax.add_patch(wall_3)
+plt.show()
+'''
 
 ############################ Map Class ####################################
 class Map:
     obstacles = []
+    fig = plt.figure()
+    ax = plt.axes()
 
     def __init__(self, x1, x2, y1, y2):
         self.min_x = x1
         self.max_x = x2
         self.min_y = y1
         self.max_y = y2
+        self.ax = plt.axes(xlim=(x1, x2), ylim=(y1, y2))
 
     #Shapely library used for all collision detection
     def add_obstacle(self, p1, p2, p3, p4):
-        point1 = Point(p1)        
-        point2 = Point(p2)
-        point3 = Point(p3)
-        point4 = Point(p4)
-
-        polygon = Polygon([point1, point2, point3, point4])
-        self.obstacles.append(polygon)
+        pointList = []
+        pointList.append(Point(p1))
+        pointList.append(Point(p2))
+        pointList.append(Point(p3)) 
+        pointList.append(Point(p4)) 
         
+        polygon = Polygon([[p.x, p.y] for p in pointList])
+        self.obstacles.append(polygon)
 
-    def collision_free(self, p_new, p_old):
-        (x,y) = (p_new[0], p_new[1][2])
+        width = abs(p3[0] - p1[0])
+        height = abs(p3[1] - p2[1])
+        wall = patches.Rectangle(p4,width,height, fill=True)
+        self.ax.add_patch(wall)
+  
+    def display(self):
+        plt.show()
+
+    def collision_free(self, p_new):
+        (x,y) = (p_new[0], p_new[1])
         if x < self.min_x or x > self.max_x or y < self.min_y or y > self.max_y:
             return False
          
         point = Point([x,y])
         for o in self.obstacles:
-            if point in o:
+            if o.contains(point):
                 return False
         
         return True
 
-    def sample_collision_free(self, T, n):
-        x = random.uniform(T.min_x, T.max_x)
-        y = random.uniform(T.min_y, T.max_y)
+    def sample_collision_free(self, n):
+        x = random.uniform(self.min_x, self.max_x)
+        y = random.uniform(self.min_y, self.max_y)
         theta = random.uniform(-pi, pi)
         p = (n,x,y,theta)
-        while not T.collision_free(p):
-            x = random.uniform(T.min_x, T.max_x)
-            y = random.uniform(T.min_y, T.min_y)
+        while not self.collision_free(p):
+            x = random.uniform(self.min_x, self.max_x)
+            y = random.uniform(self.min_y, self.min_y)
             theta = random.uniform(-pi, pi)
             p = (n,x,y,theta)
     
         return p
 
+    #Arbitrary definition of being within goal region
+    def in_goal(self, node, goal):
+        if goal[0] - node[0] < 2 and goal[1] - node[1] < 2:
+            return True
 
 ############################ RRT Class ####################################
 class RRT:
@@ -96,7 +122,7 @@ class RRT:
 
     
     def sample_random_twist(self):
-        lin_vel = random.uniform(1, 17.8816)
+        lin_vel = random.uniform(1, self.max_speed)
         sign = random.uniform(0,1)
         if sign < .5:   #randomly decelerate?
             lin_vel *= -1
@@ -105,7 +131,7 @@ class RRT:
         return (lin_vel, ang_vel)
     
     #Propogates edge from nnear given nrand using randomly sampled controls
-    def step_from_to(self, T, nnear, nrand):
+    def step_from_to(self, M, nnear, nrand):
         (xnear, ynear, theta_near) = (self.x[nnear], self.y[nnear], self.theta[nnear])
         (xrand,yrand) = (self.x[nrand], self.y[nrand])
         
@@ -139,7 +165,7 @@ class RRT:
             p1 = (x_r[near][i], y_r[near][i], theta_r[near][i])
             p0 = (xnear, ynear, theta_near)
 
-            if not T.collision_free(p1, p0):
+            if not M.collision_free(p1, p0):
                 collision = True
                 break
 
@@ -189,17 +215,16 @@ class RRT:
         self.edge_x.append(x)
         self.edge_y.append(y)
 
-    def expand(self, T):
-        n = len(self.x)    #Index number for new node
-        (x,y,theta) = T.sample_collision_free() #Sample random point from state space
+    def expand(self, M):
+        n = len(self.x)    #Index number for random node
+        (n,x,y,theta) = M.sample_collision_free(n) #Sample random point from state space
         self.add_node(n, x, y, theta)
         nnear = self.nearest_neighbor(n)
-        self.step_from_to(T, nnear, n)
-        
+        self.step_from_to(M, nnear, n)
         
 ###########################################################################  
 
-
+'''
 ##################### Construct Map in Matplotlib #########################
 fig = plt.figure()
 ax = plt.axes(xlim = (10, -9), ylim = (-7.5, 6.5))
@@ -213,3 +238,19 @@ ax.add_patch(wall_2)
 ax.add_patch(wall_3)
 plt.show()
 ###########################################################################
+'''
+
+def main():
+    m = Map(-9, 10, -7.5, 6.5)
+    m.add_obstacle((6,2.9), (6.3,2.9), (6.3,-4.2), (6,-4.2))
+    m.add_obstacle((1.2,6.5), (1.5,6.5),  (1.5,-1.5), (1.2,-1.5))
+    m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
+    #m.display()
+    
+    G = RRT(-9, -7.5, pi)
+    for i in range(10):
+        G.expand(m)
+
+
+if __name__ == "__main__":
+    main()
