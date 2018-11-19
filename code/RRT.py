@@ -11,7 +11,7 @@ from shapely.geometry.polygon import Polygon
 
 max_speed = 17.8816   #m/s
 max_turn = 0.785398   #radians
-unit_time = 0.5
+unit_time = 0.2
 
 ############################ Map Class ####################################
 class Map:
@@ -46,7 +46,7 @@ class Map:
         plt.show()
     
     def draw(self, x,y):
-        plt.plot([x, x+.01],[y, y +.01], '0.30',lw=0.5)
+        plt.plot([x, x+.01],[y, y +.01], '0.30',lw=0.75)
 
 
     def collision_free(self, p1, p0=None):
@@ -173,7 +173,7 @@ class RRT:
         path.append(d0)
         speed = control[0]
         turn = control[1]
-        dt = 0.01
+        dt = 0.005
 
         #Integrate control forwards:
         for i in range(1,int(unit_time/dt)):
@@ -195,7 +195,7 @@ def main():
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
     
     T = RRT()
-    T.build_tree(500, m, greedy=True)
+    T.build_tree(300, m, greedy=True)
     plt.show()
 
      
