@@ -17,6 +17,7 @@ import shapely.geometry as shapely
 from XYaStarInterpreter import interpret
 from Astar import find_path
 import PRM
+import copy
 #from descartes.patch import PolygonPatch
 
 class Graph():
@@ -26,6 +27,8 @@ class Graph():
         self.mp=mp
     def addVertex(self,point):
         self.vertices.append(point)
+    def copy(self):
+        return copy.deepcopy(self)
     def ngd(self, a):
         neighbors=[]
         distances=[]
@@ -180,7 +183,80 @@ def sd(intlist):
         return -1
 
 def stats():
-    print "blah"
+    mp = Map(-10,10,-10,10)
+    mp.add_Poly([(-1,-1), (-8,-2), (-5,2), (-3,2), (-4,0)])
+    mp.add_Poly([(9,5), (4,1), (5,-2), (2,-4), (1,2)])
+    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-7,-5) ,(-7,-4) ])
+    mp.add_Poly([(7,6), (0,4) ,(-8,7) ,(0,6), (4,8)])
+    mp.add_Poly([(-9,-9), (8,-5) ,(9,-8)])
+    starts=[]
+    goals=[]
+    for i in range(25):
+        starts.append(mp.sample())
+        goals.append(mp.sample())
+    prmcc_maps=[]
+    prmk_maps=[]
+    prmstar_maps=[]
+    conn=[]
+    for i in range(10):
+        g1=Graph(mp)
+        g2=Graph(mp)
+        g3=Graph(mp)
+        conn.append(PRM.prm_cc(g1,25*i+25))
+        PRM.prm_k(g2,25*i+25,5)
+        PRM.prm_star(g3,25*i+25)
+        prmcc_maps.append(g1)
+        prmk_maps.append(g2)
+        prmstar_maps.append(g3)
+        print i
+    cc_stats=[]
+    k_stats=[]
+    star_stats=[]
+    c=0
+    for prm_map in prmcc_maps:
+        raw_dat=[]
+        for i in range(len(starts)):
+            temp=prm_map.copy()
+            PRM.prm_cc(temp,0,starts[i],goals[i],copy.deepcopy(conn[c]))
+            ag=interpret(temp.vertices,temp.edges)
+            end = ag.nodes.pop()
+            beg = ag.nodes.pop()
+            if find_path(beg,end):
+                raw_dat.append(end.g)
+        cc_stats.append(average(raw_dat))
+        c+=1
+        print c
+    c=0
+    for prm_map in prmk_maps:
+        raw_dat=[]
+        for i in range(len(starts)):
+            temp=prm_map.copy()
+            PRM.prm_k(temp,0,5,starts[i],goals[i])
+            ag=interpret(temp.vertices,temp.edges)
+            end = ag.nodes.pop()
+            beg = ag.nodes.pop()
+            if find_path(beg,end):
+                raw_dat.append(end.g)
+        k_stats.append(average(raw_dat))
+        c+=1
+        print c
+    c=0
+    for prm_map in prmstar_maps:
+        raw_dat=[]
+        for i in range(len(starts)):
+            temp=prm_map.copy()
+            PRM.prm_star(temp,0,starts[i],goals[i])
+            ag=interpret(temp.vertices,temp.edges)
+            end = ag.nodes.pop()
+            beg = ag.nodes.pop()
+            if find_path(beg,end):
+                raw_dat.append(end.g)
+        star_stats.append(average(raw_dat))
+        c+=1
+        print c
+    print cc_stats
+    print k_stats
+    print star_stats
 
 def test():
 #    mp = Map(-5,5,-5,5)
@@ -226,7 +302,17 @@ def test():
 #    mp.points=graph.vertices
 #    mp.edges=graph.edges
 #    mp.display()
-
-    
+def main():
+    mp = Map(-10,10,-10,10)
+    mp.add_Poly([(-1,-1), (-6,-2), (-5,2), (-3,2), (-4,0)])
+    mp.add_Poly([(6,5), (4,1), (5,-2), (2,-4), (1,2)])
+    mp.add_Poly([(0,-3) ,(0,-4) ,(1,-5) ,(-5,-5) ,(-5,-4) ])
+    mp.add_Poly([(6,6), (0,4) ,(-5,6) ,(0,6), (4,7)])
+    g1=Graph(mp)
+    PRM.prm_star(g1,20)
+    start=(-6,7)
+    goal=(6,-6)
+    PRM.prm_star(g1,0,start,goal)
 if __name__ == '__main__':
-    test()
+    stats()
+
