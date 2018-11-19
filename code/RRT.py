@@ -11,7 +11,7 @@ from shapely.geometry.polygon import Polygon
 
 max_speed = 17.8816   #m/s
 max_turn = 0.785398   #radians
-unit_time = 1
+unit_time = 0.5
 
 ############################ Map Class ####################################
 class Map:
@@ -46,7 +46,7 @@ class Map:
         plt.show()
     
     def draw(self, x,y):
-        plt.plot(x,y, '0.50',lw=0.5)
+        plt.plot([x, x+.01],[y, y +.01], '0.30',lw=0.5)
 
 
     def collision_free(self, p1, p0=None):
@@ -54,9 +54,7 @@ class Map:
         #Check that point is inside bounds of the environment:
         if x < self.min_x or x > self.max_x or y < self.min_y or y > self.max_y:
             return False
-        
-        #Need to account for rotation?
-         
+    
         #Check that point isn't in a wall:
         point = Point([x,y])
         for o in self.obstacles:
@@ -92,14 +90,15 @@ class node:
 class RRT:
     nodes = []
     
-    def build_tree(self, K, env):
+    def build_tree(self, K, env, greedy=False):
         q0 = node(-9, -7.5, pi)
         self.nodes.append(q0)
         for i in range(K):
+            print('Iteration ', i)
             q_rand = env.sample_collision_free()
             nnear = self.nearest_neighbor(q_rand)
             q_near = self.nodes[nnear]
-            self.new_state(q_near, q_rand, env)
+            self.new_state(q_near, q_rand, env, greedy=False)
 
     #Returns index of nearest node
     def nearest_neighbor(self, q_rand):
@@ -114,7 +113,9 @@ class RRT:
     #Returns euclidean distance between two points
     def distance(self, n1, n2):
         euclidean = math.sqrt((n1.x - n2.x)**2+(n1.y - n2.y)**2)
-        return euclidean
+        d_rot1 = math.atan2(n2.y-n1.y, n2.x-n1.x) - n1.theta
+        d_rot2 = n2.theta - n1.theta - d_rot1
+        return euclidean+d_rot1+d_rot2
 
     #Returns random linear and angular velocity controls
     def sample_random_control(self):
@@ -123,7 +124,7 @@ class RRT:
         return (l_vel, ang_vel)
     
     #Samples multiple controls and propogates an edge from q_near given controls
-    def new_state(self, q_near, q_rand, env):
+    def new_state(self, q_near, q_rand, env, greedy=False):
         possible_controls = []
         for i in range(10):
             possible_controls.append(self.sample_random_control())
@@ -132,14 +133,25 @@ class RRT:
         for control in possible_controls:
             trajectories.append(self.trajectory(q_near, control))
 
-        #Find control closest to random node
-        dmin = self.distance(trajectories[0][-1], q_rand)
-        nnear = 0
-        for i in range(1, len(trajectories)):
-            n = trajectories[i][-1]
-            d = self.distance(n, q_rand)
-            if d < dmin:
-                nnear = i
+        if greedy == True:
+            #Find control closest to random node
+            dmin = self.distance(trajectories[0][-1], q_rand) / 2
+            nnear = 0
+            for i in range(1, len(trajectories)):
+                n = trajectories[i][-1]
+                d = self.distance(n, q_rand) / 2 
+                if d < dmin:
+                    nnear = i
+        else:
+            #Find control closest to random node
+            dmin = self.distance(trajectories[0][-1], q_rand)
+            nnear = 0
+            for i in range(1, len(trajectories)):
+                n = trajectories[i][-1]
+                d = self.distance(n, q_rand)
+                if d < dmin:
+                    nnear = i
+                
         #Check for collisions:
         collision = False
         for point in trajectories[nnear]:
@@ -165,7 +177,7 @@ class RRT:
 
         #Integrate control forwards:
         for i in range(1,int(unit_time/dt)):
-            theta = path[i-1].theta+speed*math.tan(turn)/1.9*dt
+            theta = path[i-1].theta+speed*math.tan(turn)*dt
             x = path[i-1].x+speed*math.cos(path[i-1].theta)*dt
             y = path[i-1].y+speed*math.sin(path[i-1].theta)*dt    
             di = node(x,y, theta)
@@ -181,9 +193,11 @@ def main():
     m.add_obstacle((6,2.9), (6.3,2.9), (6.3,-4.2), (6,-4.2))
     m.add_obstacle((1.2,6.5), (1.5,6.5),  (1.5,-1.5), (1.2,-1.5))
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
-   
+    
     T = RRT()
-    T.build_tree(100, m)
- 
+    T.build_tree(500, m, greedy=True)
+    plt.show()
+
+     
 if __name__ == "__main__":
     main()
