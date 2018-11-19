@@ -160,6 +160,28 @@ class Map():
     
         plt.show()
 
+def average(intlist):
+    total=0
+    for val in intlist:
+        total+=val
+    if len(intlist)>0:
+        return total/float(len(intlist))
+    else:
+        return -1
+def sd(intlist):
+    avg= average(intlist)
+    variance=0
+    for val in intlist:
+        variance+=np.square(val-avg)
+    if len(intlist)>0:
+        variance= variance/float(len(intlist))
+        return np.sqrt(variance)
+    else:
+        return -1
+
+def stats():
+    print "blah"
+
 def test():
 #    mp = Map(-5,5,-5,5)
     mp = Map(-7, 8, -7, 8)
@@ -176,9 +198,9 @@ def test():
     graph=Graph(mp)
     
     """Create graph for PRM"""
-#    PRM.prm_cc(graph,start,goal,100)
-#    PRM.prm_k(graph,start,goal,100,3)
-    PRM.prm_star(graph,start,goal,100)
+#    PRM.prm_cc(graph,100,start,goal)
+#    PRM.prm_k(graph,100,3,start,goal)
+    PRM.prm_star(graph,5)
     
     """Add graph and tree to display and print out what it looks"""
     mp.points=graph.vertices

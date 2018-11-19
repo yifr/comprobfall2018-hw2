@@ -1,10 +1,14 @@
 
 import math
 
-def prm_cc(graph,start,goal,iterations):
+def prm_cc(graph,iterations,start=None,goal=None):
+    if start!=None and goal != None:
+        true_iter=iterations+2
+    else:
+        true_iter=iterations
     """Samples and connects new points"""
     conn_comp=[]
-    for i in range(iterations+2):
+    for i in range(true_iter):
         """Add sampe or start and goal locations to the end"""
         conn_comp.append([])
         if i<iterations:
@@ -39,9 +43,13 @@ def prm_cc(graph,start,goal,iterations):
                 conn_comp.pop(samp_group)
                 graph.connect(graph.vertices[i],pt)
         
-def prm_k(graph,start,goal,iterations,k):
+def prm_k(graph,iterations,k,start=None,goal=None):
+    if start!=None and goal != None:
+        true_iter=iterations+2
+    else:
+        true_iter=iterations
     """Samples and connects new points"""
-    for i in range(iterations+2):
+    for i in range(true_iter):
         if i<iterations:
             graph.sample()
         elif i==iterations:
@@ -58,8 +66,12 @@ def prm_k(graph,start,goal,iterations,k):
             graph.connect(graph.vertices[i],pt)
 
 
-def prm_star(graph,start,goal,iterations):
-    for i in range(iterations+2):
+def prm_star(graph,iterations,start=None,goal=None):
+    if start!=None and goal != None:
+        true_iter=iterations+2
+    else:
+        true_iter=iterations
+    for i in range(true_iter):
         """Add sampe or start and goal locations to the end"""
         if i<iterations:
             samp=graph.sample()

@@ -22,6 +22,11 @@ class Graph():
         self.mp=mp
     def addVertex(self,point):
         self.vertices.append(point)
+    def copy(self):
+        temp=Graph(self.mp)
+        temp.edges=self.edges
+        temp.vertices=self.vertices
+        return temp
     def ngd(self, a):
         neighbors=[]
         distances=[]
@@ -161,26 +166,98 @@ def heuristic(n, m):
     a=n[0]
     b=m[0]
     return np.sqrt(np.square(a[0]-b[0])+np.square(a[1]-b[1])+np.square(a[2]-b[2]))
+def average(intlist):
+    total=0
+    for val in intlist:
+        total+=val
+    if len(intlist)>0:
+        return total/float(len(intlist))
+    else:
+        return -1
+def sd(intlist):
+    avg= average(intlist)
+    variance=0
+    for val in intlist:
+        variance+=np.square(val-avg)
+    if len(intlist)>0:
+        variance= variance/float(len(intlist))
+        return np.sqrt(variance)
+    else:
+        return -1
 def test():
-	pm=pianoMover()	
-	pm.move_model("piano2",(3.5,4,0.4),(0,0,0,0))
+    #	pointa=((3,4,2),(1.0,0.0,0.0,0.0))
+    #	pointb=((3,6,2),(0,2.0,1.0,4.0))
+    #	pm=pianoMover()	
+    #	pm.move_model("piano2",pointb[0],pointb[1])
+    #
+    #	mp=XYZmap(-10,10,-10,10,-10,10)
+    #	quat=Quaternion(pointa[1])
+    #	quat_list=quat.rotation_matrix
+    #	flat_quat=[]
+    #	for lis in quat_list:
+    #		for val in lis:
+    #		    flat_quat.append(val)
+    #
+    #	print (pqp_client(pointa[0],flat_quat)==False)
+    #	print mp.collide(pointa,pointb)
+    pm=pianoMover()	
+    pm.move_model("piano2",(3.5,4,0.4),(0,0,0,0))
+def q5():
+    mp = XYZmap(-10,10,-10,10,0.4,5)
+    starts=[]
+    goals=[]
+    for i in range(20):
+        starts.append(mp.sample())
+        goals.append(mp.sample())
+    prmcc_maps=[]
+    prmk_maps=[]
+    prmstar_maps=[]
+    for i in range(10):
+        prmcc_maps.append(PRM.prm_cc(Graph(mp),50*i))
+        prmk_maps.append(PRM.prm_k(Graph(mp),50*i,5))
+        prmstar_maps.append(PRM.prm_star(Graph(mp),50*i))
+    cc_stats=[]
+    k_stats=[]
+    star_stats=[]
+    for prm_map in prmcc_maps:
+        raw_dat=[]
+        for i in range(len(starts)):
+            temp=prm_map.copy()
+            PRM.prm_cc(temp,0,starts[i],goals[i])
+            ag=interpret(temp.vertices,temp.edges)
+            end = ag.nodes.pop()
+            beg = ag.nodes.pop()
+            if find_path(beg,end):
+                raw_dat.append(end.g)
+        cc_stats.append(average(raw_dat),sd(raw_dat))
+    for prm_map in prmk_maps:
+        raw_dat=[]
+        for i in range(len(starts)):
+            temp=prm_map.copy()
+            PRM.prm_k(temp,0,starts[i],goals[i])
+            ag=interpret(temp.vertices,temp.edges)
+            end = ag.nodes.pop()
+            beg = ag.nodes.pop()
+            if find_path(beg,end):
+                raw_dat.append(end.g)
+        k_stats.append(average(raw_dat),sd(raw_dat))
+    for prm_map in prmstar_maps:
+        raw_dat=[]
+        for i in range(len(starts)):
+            temp=prm_map.copy()
+            PRM.prm_star(temp,0,starts[i],goals[i])
+            ag=interpret(temp.vertices,temp.edges)
+            end = ag.nodes.pop()
+            beg = ag.nodes.pop()
+            if find_path(beg,end):
+                raw_dat.append(end.g)
+        star_stats.append(average(raw_dat),sd(raw_dat))
+    print cc_stats
+    print k_stats
+    print star_stats
 def main():
-#	pointa=((3,4,2),(1.0,0.0,0.0,0.0))
-#	pointb=((3,6,2),(0,2.0,1.0,4.0))
-#	pm=pianoMover()	
-#	pm.move_model("piano2",pointb[0],pointb[1])
-#
-#	mp=XYZmap(-10,10,-10,10,-10,10)
-#	quat=Quaternion(pointa[1])
-#	quat_list=quat.rotation_matrix
-#	flat_quat=[]
-#	for lis in quat_list:
-#		for val in lis:
-#		    flat_quat.append(val)
-#
-#	print (pqp_client(pointa[0],flat_quat)==False)
-#	print mp.collide(pointa,pointb)
-	mp = XYZmap(-10,10,-10,10,0.4,4)
+
+	mp = XYZmap(-10,10,-10,10,0.4,5)
 
 	start=((3.0,8.5,0.4),(0.0,0.0,0.0,0.0))
 	goal=((3.5,4.0,0.4),(0.0,0.0,0.0,0.0))
@@ -188,9 +265,9 @@ def main():
 	graph=Graph(mp)
 	
 
-	#    PRM.prm_cc(graph,start,goal,100)
-	PRM.prm_k(graph,start,goal,50,3)
-	#    PRM.prm_star(graph,start,goal,100)
+	#    PRM.prm_cc(graph,100,start,goal)
+	PRM.prm_k(graph,50,3,start,goal)
+	#    PRM.prm_star(graph,100,start,goal)
 	
 	
 
