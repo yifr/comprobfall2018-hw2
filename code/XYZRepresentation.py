@@ -257,7 +257,7 @@ def q5():
             beg = ag.nodes.pop()
             if find_path(beg,end):
                 raw_dat.append(end.g)
-        star_stats.append(average(raw_dat),sd(raw_dat))
+        star_stats.append((average(raw_dat),sd(raw_dat)))
     print cc_stats
     print k_stats
     print star_stats
