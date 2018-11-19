@@ -213,9 +213,12 @@ def q5():
     prmk_maps=[]
     prmstar_maps=[]
     for i in range(10):
-        prmcc_maps.append(PRM.prm_cc(Graph(mp),50*i))
-        prmk_maps.append(PRM.prm_k(Graph(mp),50*i,5))
-        prmstar_maps.append(PRM.prm_star(Graph(mp),50*i))
+        g1=Graph(mp)
+        g2=Graph(mp)
+        g3=Graph(mp)
+        prmcc_maps.append(PRM.prm_cc(g1,50*i))
+        prmk_maps.append(PRM.prm_k(g2,50*i,5))
+        prmstar_maps.append(PRM.prm_star(g3,50*i))
     cc_stats=[]
     k_stats=[]
     star_stats=[]
