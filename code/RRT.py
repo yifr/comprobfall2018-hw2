@@ -44,23 +44,27 @@ class Map:
   
     def display(self):
         plt.show()
+    
+    def draw(self, x,y):
+        plt.plot(x,y, '0.50',lw=0.5)
 
-    #Check if a single point is collision free
-    def collision_free(self, p):
-        (x,y) = (p.x, p.y)
+
+    def collision_free(self, p1, p0=None):
+        (x,y) = (p1.x, p1.y)
         #Check that point is inside bounds of the environment:
         if x < self.min_x or x > self.max_x or y < self.min_y or y > self.max_y:
             return False
         
-        #Need to account for rotation
+        #Need to account for rotation?
          
         #Check that point isn't in a wall:
         point = Point([x,y])
         for o in self.obstacles:
-            if o.contains(point):
+            if point.within(o) or o.contains(point):
                 return False 
         return True
 
+    #Check if a single point is collision free
     def sample_collision_free(self):
         x = random.uniform(self.min_x, self.max_x)
         y = random.uniform(self.min_y, self.max_y)
@@ -145,6 +149,8 @@ class RRT:
         
         if collision == False:
             q_new = trajectories[nnear][-1] 
+            for n in trajectories[nnear]:
+                env.draw(n.x,n.y)
             self.nodes.append(q_new)                                    #Add node to our tree
             q_near.children.append((q_new, possible_controls[nnear]))   #Append child with control necessary to reach that node
 
@@ -177,11 +183,7 @@ def main():
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
    
     T = RRT()
-    T.build_tree(50, m)
-    for n in T.nodes:
-        plt.plot(n.x,n.y,.4,lw=.5)
-    plt.show()
-    #m.display()
-
+    T.build_tree(100, m)
+ 
 if __name__ == "__main__":
     main()
