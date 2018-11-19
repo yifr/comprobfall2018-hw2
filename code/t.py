@@ -14,12 +14,6 @@ class env:
 		self.xmax=xmax
 		self.ymin=ymin
 		self.ymax=ymax
-		
-#when obstacles are sensed
-	def obs_add(self,ox,oy):
-		self.x += ox
-		self.y += oy
-	
 
 #check if newly added sample is in the free configuration space
 	def isfree(self):

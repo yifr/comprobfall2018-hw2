@@ -8,19 +8,10 @@ from math import pi as pi
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
-'''
-fig = plt.figure()
-ax = plt.axes(xlim = (10, -9), ylim = (-7.5, 6.5))
 
-wall_1 = patches.Rectangle((6,-4.2),.3, 7.1, fill=True)
-wall_2 = patches.Rectangle((1.2, -1.5), width=.3, height=7.5, fill=True)
-wall_3 = patches.Rectangle((-4.5, -7.5), width=.3, height=8.5, fill=True)
-
-ax.add_patch(wall_1)
-ax.add_patch(wall_2)
-ax.add_patch(wall_3)
-plt.show()
-'''
+max_speed = 17.8816   #m/s
+max_turn = 0.785398   #radians
+unit_time = 1
 
 ############################ Map Class ####################################
 class Map:
@@ -54,203 +45,143 @@ class Map:
     def display(self):
         plt.show()
 
-    def collision_free(self, p_new):
-        (x,y) = (p_new[0], p_new[1])
+    #Check if a single point is collision free
+    def collision_free(self, p):
+        (x,y) = (p.x, p.y)
+        #Check that point is inside bounds of the environment:
         if x < self.min_x or x > self.max_x or y < self.min_y or y > self.max_y:
             return False
+        
+        #Need to account for rotation
          
+        #Check that point isn't in a wall:
         point = Point([x,y])
         for o in self.obstacles:
             if o.contains(point):
-                return False
-        
+                return False 
         return True
 
-    def sample_collision_free(self, n):
+    def sample_collision_free(self):
         x = random.uniform(self.min_x, self.max_x)
         y = random.uniform(self.min_y, self.max_y)
         theta = random.uniform(-pi, pi)
-        p = (n,x,y,theta)
+        p = node(x,y,theta)
         while not self.collision_free(p):
             x = random.uniform(self.min_x, self.max_x)
-            y = random.uniform(self.min_y, self.min_y)
+            y = random.uniform(self.min_y, self.max_y)
             theta = random.uniform(-pi, pi)
-            p = (n,x,y,theta)
-    
+            p = node(x,y,theta)
         return p
 
-    #Arbitrary definition of being within goal region
-    def in_goal(self, node, goal):
-        if goal[0] - node[0] < 2 and goal[1] - node[1] < 2:
-            return True
-
+    
+		
 ############################ RRT Class ####################################
-class RRT:
-    tire_dia = 0.14605                          #Tire diameter
-    max_speed = 17.8816                         #Max speed (m/s)
-    #max_ang = 2*pi*(max_speed/(pi*tire_dia))    #Max angular velocity (rad/s)
-    max_turn = 0.785398                         #+/- 45 degrees for max turn (0.78.. radians)
-     
-    def __init__(self, x, y, theta):
-       
-        self.x = []
-        self.edge_x = []
-        self.x.append(x)
-        self.edge_x.append(x)
-
-        self.y = []
-        self.edge_y = []
-        self.y.append(y)
-        self.edge_y.append(y)
-
-        self.theta = []
-        self.theta.append(theta)
-        
-        #self.pose = (x,y,theta)
-
-        self.parent = []
-        self.parent.append(0)
-
+class node:
+     def __init__(self, x, y, theta):
+        self.x = x
+        self.y = y
+        self.theta = theta
         self.lin_vel = 0
         self.ang_vel = 0
-        
-        #self.twist = (self.lin_vel, self. ang_vel)
+        self.children = []
+
+class RRT:
+    nodes = []
     
-    def distance(self, p1, p2):
-        euclidean = math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
-        return euclidean
+    def build_tree(self, K, env):
+        q0 = node(-9, -7.5, pi)
+        self.nodes.append(q0)
+        for i in range(K):
+            q_rand = env.sample_collision_free()
+            nnear = self.nearest_neighbor(q_rand)
+            q_near = self.nodes[nnear]
+            self.new_state(q_near, q_rand, env)
 
-    
-    def sample_random_twist(self):
-        lin_vel = random.uniform(1, self.max_speed)
-        sign = random.uniform(0,1)
-        if sign < .5:   #randomly decelerate?
-            lin_vel *= -1
-        ang_vel = random.uniform(-1*self.max_turn, self.max_turn)
-        
-        return (lin_vel, ang_vel)
-    
-    #Propogates edge from nnear given nrand using randomly sampled controls
-    def step_from_to(self, M, nnear, nrand):
-        (xnear, ynear, theta_near) = (self.x[nnear], self.y[nnear], self.theta[nnear])
-        (xrand,yrand) = (self.x[nrand], self.y[nrand])
-        
-        #Lists to hold reachable states 
-        x_r = []
-        y_r = []
-        theta_r = []
-
-        #1) Sample 10 random controls
-        for i in range(10):
-            (speed, angle) = self.sample_random_twist()
-            (x,y,theta) = self.calculate_trajectory(xnear, ynear, theta_near, angle, speed) #returns lists of points along trajectory
-            x_r.append(x)
-            y_r.append(y)
-            theta_r.append(theta)
-
-        #2) find nearest reachable state from near to rand
-        d_min = ((xrand - x_r[0][-1])**2 + (yrand-y_r[0][-1])**2)**0.5
-        near = 0
-        for i in range(1, len(x_r)):
-            d = ((xrand - x_r[0][-1])**2 + (yrand-y_r[0][-1])**2)**0.5
-            if d < d_min:
-                d_min = d
-                near = i
-
-        self.remove_node(nrand)
-
-       #Check for collisions along trajectory
-        collision = False
-        for i in range(0, len(x_r[near])):
-            p1 = (x_r[near][i], y_r[near][i], theta_r[near][i])
-            p0 = (xnear, ynear, theta_near)
-
-            if not M.collision_free(p1, p0):
-                collision = True
-                break
-
-        if collision == False:
-            self.add_node(nrand, x_r[near][-1], y_r[near][-1], theta_r[near][-1])
-            self.add_edge(nnear, nrand, x_r[near], y_r[near])
-
-
-    #Calculates result of moving from x_near with randomly sampled control
-    def calculate_trajectory(self, x_i, y_i, theta_i, angle, speed):
-        (x,y,theta) = ([], [], [])
-        x.append(x_i)
-        y.append(y_i)
-        theta.append(theta_i)
-        dt = 0.01 
-        unit_time = random.uniform(0.05, 1)     #Randomly sample time?
-
-        #Integrate controls forward
-        for i in range(1, int(unit_time/dt)):
-            x.append(x[i-1]+speed*math.cos(theta[i-1])*dt)
-            y.append(y[i-1]+speed*math.sin(theta[i-1])*dt)
-            theta.append(theta[i-1]+speed*math.tan(angle)*dt)
-
-        return (x,y,theta)
-
-    def nearest_neighbor(self, n):
-        d_min = self.distance(0, n)
+    #Returns index of nearest node
+    def nearest_neighbor(self, q_rand):
+        d_min = self.distance(self.nodes[0], q_rand)
         nnear = 0
-        for i in range(1, n):
-            d = self.distance(i, n)
+        for i in range(1, len(self.nodes)):
+            d = self.distance(self.nodes[i], q_rand)
             if d < d_min:
                 nnear = i
         return nnear
 
-    def add_node(self, n, x, y, theta):
-        self.x.insert(n, x)
-        self.y.insert(n, y)
-        self.theta.insert(n, theta)
+    #Returns euclidean distance between two points
+    def distance(self, n1, n2):
+        euclidean = math.sqrt((n1.x - n2.x)**2+(n1.y - n2.y)**2)
+        return euclidean
 
-    def remove_node(self, n):
-        self.x.pop(n)
-        self.y.pop(n)
-        self.theta.pop(n)
+    #Returns random linear and angular velocity controls
+    def sample_random_control(self):
+        l_vel = random.uniform(-1*max_speed, max_speed)
+        ang_vel = random.uniform(-1*max_turn, max_turn)
+        return (l_vel, ang_vel)
+    
+    #Samples multiple controls and propogates an edge from q_near given controls
+    def new_state(self, q_near, q_rand, env):
+        possible_controls = []
+        for i in range(10):
+            possible_controls.append(self.sample_random_control())
 
-    def add_edge(self, parent, child, x, y):
-        self.parent.insert(child, parent)
-        self.edge_x.append(x)
-        self.edge_y.append(y)
+        trajectories = []
+        for control in possible_controls:
+            trajectories.append(self.trajectory(q_near, control))
 
-    def expand(self, M):
-        n = len(self.x)    #Index number for random node
-        (n,x,y,theta) = M.sample_collision_free(n) #Sample random point from state space
-        self.add_node(n, x, y, theta)
-        nnear = self.nearest_neighbor(n)
-        self.step_from_to(M, nnear, n)
+        #Find control closest to random node
+        dmin = self.distance(trajectories[0][-1], q_rand)
+        nnear = 0
+        for i in range(1, len(trajectories)):
+            n = trajectories[i][-1]
+            d = self.distance(n, q_rand)
+            if d < dmin:
+                nnear = i
+        #Check for collisions:
+        collision = False
+        for point in trajectories[nnear]:
+            if not env.collision_free(point):   #Doesn't take into account too sharp turns
+                collision = True
+                break
         
+        if collision == False:
+            q_new = trajectories[nnear][-1] 
+            self.nodes.append(q_new)                                    #Add node to our tree
+            q_near.children.append((q_new, possible_controls[nnear]))   #Append child with control necessary to reach that node
+
+    #Return list of x,y,theta nodes generated taking a certain curve
+    def trajectory(self, n, control):
+        path = []
+        d0 = node(n.x, n.y, n.theta)
+        path.append(d0)
+        speed = control[0]
+        turn = control[1]
+        dt = 0.01
+
+        #Integrate control forwards:
+        for i in range(1,int(unit_time/dt)):
+            theta = path[i-1].theta+speed*math.tan(turn)/1.9*dt
+            x = path[i-1].x+speed*math.cos(path[i-1].theta)*dt
+            y = path[i-1].y+speed*math.sin(path[i-1].theta)*dt    
+            di = node(x,y, theta)
+            path.append(di)
+        return path
+
+
 ###########################################################################  
 
-'''
-##################### Construct Map in Matplotlib #########################
-fig = plt.figure()
-ax = plt.axes(xlim = (10, -9), ylim = (-7.5, 6.5))
-
-wall_1 = patches.Rectangle((6,-4.2),.3, 7.1, fill=True)
-wall_2 = patches.Rectangle((1.2, -1.5), width=.3, height=7.5, fill=True)
-wall_3 = patches.Rectangle((-4.5, -7.5), width=.3, height=8.5, fill=True)
-
-ax.add_patch(wall_1)
-ax.add_patch(wall_2)
-ax.add_patch(wall_3)
-plt.show()
-###########################################################################
-'''
 
 def main():
     m = Map(-9, 10, -7.5, 6.5)
     m.add_obstacle((6,2.9), (6.3,2.9), (6.3,-4.2), (6,-4.2))
     m.add_obstacle((1.2,6.5), (1.5,6.5),  (1.5,-1.5), (1.2,-1.5))
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
+   
+    T = RRT()
+    T.build_tree(50, m)
+    for n in T.nodes:
+        plt.plot(n.x,n.y,.4,lw=.5)
+    plt.show()
     #m.display()
-    
-    G = RRT(-9, -7.5, pi)
-    for i in range(10):
-        G.expand(m)
-
 
 if __name__ == "__main__":
     main()
