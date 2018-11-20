@@ -12,7 +12,7 @@ from shapely.geometry.polygon import Polygon
 
 max_speed = 10#17.8816   #m/s
 max_turn = 0.785398   #radians
-unit_time = 0.25
+unit_time = 0.2
 
 ############################ Map Class ####################################
 class Map:
@@ -185,7 +185,7 @@ class RRT:
         path.append(d0)
         speed = control[0]
         turn = control[1]
-        dt = 0.01
+        dt = 0.05
 
         #Integrate control forwards:
         for i in range(1,int(unit_time/dt)):
@@ -233,7 +233,7 @@ def find_path(start, goal, T):
         closed.append(current_tuple[1])
         
         if current_tuple[1].equal(goal):
-            print "Found Goal!"
+            print ("Found Goal!")
             print("step %d"%(counter))
             goal.set_parent(current_tuple[1].parent)
             goal.g=current_tuple[1].g
@@ -259,7 +259,7 @@ def find_path(start, goal, T):
                     neighbor.set_parent(None)
                     
                 updateVertex(current_tuple[1],neighbor,fringe,goal)
-    print "No path found"
+    print ("No path found")
     return False        
 def heuristic(n1, n2):
     euclidean = math.sqrt((n1.x - n2.x)**2+(n1.y - n2.y)**2)
@@ -314,26 +314,29 @@ def main():
     m.add_obstacle((6,2.9), (6.3,2.9), (6.3,-4.2), (6,-4.2))
     m.add_obstacle((1.2,6.5), (1.5,6.5),  (1.5,-1.5), (1.2,-1.5))
     m.add_obstacle((-4.2,1), (-4.2,-7.5), (-4.5,1), (-4.5,-7.5))
-    
+    T = RRT()
+    T.build_tree(200, m, greedy=True)
+    ''' 
     stats=[]
-    for i in range(2):
+    for i in range(5):
         raw_dat=[]
-        for j in range(2):
+        for j in range(5):
             T = RRT()
-            T.build_tree(i*10+10, m, greedy=False)
+            T.build_tree(i*20+200, m, greedy=False)
             start=T.nodes[0]
             goal=T.nodes[T.get_goal_index()]
             find_path(start,goal,T)
             raw_dat.append(goal.g+T.distance(goal,node(10,6.5,pi))*1.5)
         stats.append((average(raw_dat),sd(raw_dat)))
-    print stats
-#    start=T.nodes[0]
-#    goal=T.nodes[T.get_goal_index()]
-#    find_path(start,goal,T)
-#    iterator=goal
-#    while iterator!=None:
-#        m.plot(iterator)
-#        iterator=iterator.parent
-#    plt.show()
+    print (stats)
+    start=T.nodes[0]
+    goal=T.nodes[T.get_goal_index()]
+    find_path(start,goal,T)
+    iterator=goal
+    while iterator!=None:
+        m.plot(iterator)
+        iterator=iterator.parent
+    '''
+    plt.show()
 if __name__ == "__main__":
     main()
